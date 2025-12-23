@@ -251,6 +251,26 @@ footer p:last-child {
     margin-bottom: 0;
 }
 
+.data-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: left;
+}
+
+.data-btn:hover {
+    background: white;
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 2em;

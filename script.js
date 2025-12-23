@@ -1,6 +1,7 @@
 // Variabel global
 let map;
 let marker;
+let currentUserLocation = null; // Menyimpan lokasi user saat ini
 
 // Elemen DOM
 const getLocationBtn = document.getElementById('getLocationBtn');
@@ -64,6 +65,20 @@ function handleSuccess(position) {
 
     console.log('📍 Koordinat:', latitude, longitude, 'Akurasi:', accuracy);
 
+    // Simpan lokasi ke variable global
+    currentUserLocation = {
+        latitude: latitude,
+        longitude: longitude,
+        accuracy: accuracy,
+        timestamp: new Date().toISOString(),
+        method: 'GPS'
+    };
+
+    // Simpan ke localStorage
+    localStorage.setItem('userLocation', JSON.stringify(currentUserLocation));
+    console.log('💾 Lokasi disimpan ke localStorage dan variable global!');
+    console.log('📦 Data lokasi:', currentUserLocation);
+
     // Tampilkan informasi
     displayLocationInfo(latitude, longitude, accuracy);
     
@@ -77,6 +92,9 @@ function handleSuccess(position) {
     displayRecommendations(latitude, longitude);
     
     showLocationInfo();
+
+    // Tambahkan tombol untuk melihat data lokasi
+    addLocationDataViewer();
 }
 
 // Fungsi ketika gagal mendapatkan lokasi
@@ -155,7 +173,25 @@ async function getLocationByIP() {
             // Tampilkan rekomendasi
             displayRecommendations(lat, lng);
             
+            // Simpan lokasi (dari IP)
+            currentUserLocation = {
+                latitude: lat,
+                longitude: lng,
+                accuracy: 5000,
+                timestamp: new Date().toISOString(),
+                method: 'IP',
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                isp: data.org
+            };
+            localStorage.setItem('userLocation', JSON.stringify(currentUserLocation));
+            console.log('💾 Lokasi IP disimpan:', currentUserLocation);
+            
             showLocationInfo();
+            
+            // Tambahkan tombol untuk melihat data lokasi
+            addLocationDataViewer();
             
             // Tampilkan peringatan
             const warning = document.createElement('div');
@@ -314,4 +350,109 @@ function showLocationInfo() {
 
 function hideLocationInfo() {
     locationInfo.classList.add('hidden');
+}
+
+// Fungsi untuk menambahkan tombol viewer data lokasi
+function addLocationDataViewer() {
+    // Cek apakah sudah ada
+    if (document.getElementById('locationDataViewer')) {
+        return;
+    }
+
+    const viewerSection = document.createElement('div');
+    viewerSection.id = 'locationDataViewer';
+    viewerSection.style.marginTop = '20px';
+    viewerSection.style.padding = '20px';
+    viewerSection.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    viewerSection.style.borderRadius = '15px';
+    viewerSection.style.color = 'white';
+    
+    viewerSection.innerHTML = `
+        <h3 style="margin-top: 0;">🔍 Akses Data Lokasi</h3>
+        <p style="margin-bottom: 15px;">Data lokasi tersedia di berbagai tempat:</p>
+        
+        <div style="display: grid; gap: 10px;">
+            <button onclick="showLocationInConsole()" class="data-btn">
+                📋 Tampilkan di Console
+            </button>
+            <button onclick="copyLocationToClipboard()" class="data-btn">
+                📋 Copy Data ke Clipboard
+            </button>
+            <button onclick="showLocationJSON()" class="data-btn">
+                📄 Lihat JSON Format
+            </button>
+            <button onclick="sendLocationToServer()" class="data-btn">
+                🚀 Simulasi Kirim ke Server
+            </button>
+        </div>
+        
+        <div id="jsonDisplay" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: monospace; font-size: 12px; overflow-x: auto;"></div>
+    `;
+    
+    locationInfo.appendChild(viewerSection);
+}
+
+// Fungsi untuk menampilkan lokasi di console
+function showLocationInConsole() {
+    console.clear();
+    console.log('🌍 ==================== DATA LOKASI USER ====================');
+    console.log('📍 Variable Global (currentUserLocation):');
+    console.log(currentUserLocation);
+    console.log('\n💾 Data dari localStorage:');
+    console.log(JSON.parse(localStorage.getItem('userLocation')));
+    console.log('\n📊 Cara mengakses data:');
+    console.log('- JavaScript: currentUserLocation.latitude');
+    console.log('- LocalStorage: JSON.parse(localStorage.getItem("userLocation"))');
+    console.log('===========================================================');
+    alert('✅ Data lokasi ditampilkan di Console! Tekan F12 untuk melihat.');
+}
+
+// Fungsi untuk copy data ke clipboard
+function copyLocationToClipboard() {
+    const data = JSON.stringify(currentUserLocation, null, 2);
+    navigator.clipboard.writeText(data).then(() => {
+        alert('✅ Data lokasi berhasil di-copy ke clipboard!\n\nAnda bisa paste di text editor.');
+    }).catch(err => {
+        alert('❌ Gagal copy: ' + err);
+    });
+}
+
+// Fungsi untuk menampilkan JSON
+function showLocationJSON() {
+    const jsonDisplay = document.getElementById('jsonDisplay');
+    if (jsonDisplay.style.display === 'none') {
+        jsonDisplay.style.display = 'block';
+        jsonDisplay.innerHTML = '<pre>' + JSON.stringify(currentUserLocation, null, 2) + '</pre>';
+    } else {
+        jsonDisplay.style.display = 'none';
+    }
+}
+
+// Fungsi simulasi kirim ke server
+async function sendLocationToServer() {
+    // Simulasi kirim ke server (ganti URL dengan backend Anda)
+    console.log('🚀 Mengirim data ke server...');
+    console.log('Data yang dikirim:', currentUserLocation);
+    
+    // Contoh dengan fetch (uncomment jika punya backend)
+    /*
+    try {
+        const response = await fetch('https://your-api.com/save-location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(currentUserLocation)
+        });
+        const result = await response.json();
+        console.log('✅ Response dari server:', result);
+        alert('✅ Data berhasil dikirim ke server!');
+    } catch (error) {
+        console.error('❌ Error:', error);
+        alert('❌ Gagal kirim ke server: ' + error.message);
+    }
+    */
+    
+    // Simulasi saja
+    alert('✅ Simulasi berhasil!\n\nData lokasi siap dikirim ke server.\nCek console untuk melihat data yang akan dikirim.\n\nUntuk kirim ke server sungguhan, uncomment kode di fungsi sendLocationToServer()');
 }
