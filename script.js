@@ -1,0 +1,317 @@
+// Variabel global
+let map;
+let marker;
+
+// Elemen DOM
+const getLocationBtn = document.getElementById('getLocationBtn');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const errorMessage = document.getElementById('errorMessage');
+const locationInfo = document.getElementById('locationInfo');
+
+// Event listener
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Aplikasi dimuat!');
+    console.log('Tombol:', getLocationBtn);
+    console.log('Loading:', loadingIndicator);
+    console.log('Error:', errorMessage);
+    console.log('LocationInfo:', locationInfo);
+    
+    if (getLocationBtn) {
+        getLocationBtn.addEventListener('click', getUserLocation);
+        console.log('✅ Event listener terpasang!');
+    } else {
+        console.error('❌ Tombol tidak ditemukan!');
+    }
+});
+
+// Fungsi untuk mendapatkan lokasi user
+function getUserLocation() {
+    console.log('🔍 Meminta lokasi...');
+    
+    // Cek apakah browser mendukung geolocation
+    if (!navigator.geolocation) {
+        showError('Browser Anda tidak mendukung Geolocation API');
+        return;
+    }
+
+    // Reset tampilan
+    hideError();
+    hideLocationInfo();
+    showLoading();
+
+    console.log('⏳ Menunggu izin lokasi dari user...');
+
+    // Dapatkan lokasi dengan opsi yang lebih toleran
+    navigator.geolocation.getCurrentPosition(
+        handleSuccess,
+        handleError,
+        {
+            enableHighAccuracy: false, // Ubah ke false untuk lebih cepat
+            timeout: 30000, // Perpanjang timeout jadi 30 detik
+            maximumAge: 60000 // Izinkan cache lokasi hingga 1 menit
+        }
+    );
+}
+
+// Fungsi ketika berhasil mendapatkan lokasi
+function handleSuccess(position) {
+    console.log('✅ Lokasi berhasil didapat:', position);
+    hideLoading();
+    
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+
+    console.log('📍 Koordinat:', latitude, longitude, 'Akurasi:', accuracy);
+
+    // Tampilkan informasi
+    displayLocationInfo(latitude, longitude, accuracy);
+    
+    // Dapatkan alamat dari koordinat
+    getAddressFromCoordinates(latitude, longitude);
+    
+    // Tampilkan peta dengan akurasi
+    displayMap(latitude, longitude, accuracy);
+    
+    // Tampilkan rekomendasi berdasarkan lokasi
+    displayRecommendations(latitude, longitude);
+    
+    showLocationInfo();
+}
+
+// Fungsi ketika gagal mendapatkan lokasi
+function handleError(error) {
+    hideLoading();
+    
+    let message = '';
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            message = '❌ Anda menolak permintaan untuk mendapatkan lokasi. Silakan izinkan akses lokasi di pengaturan browser Anda.';
+            break;
+        case error.POSITION_UNAVAILABLE:
+            message = '❌ Informasi lokasi tidak tersedia. Pastikan GPS/WiFi Anda aktif.';
+            break;
+        case error.TIMEOUT:
+            message = '❌ Waktu permintaan lokasi habis. Silakan coba lagi atau aktifkan GPS/WiFi Anda.';
+            break;
+        default:
+            message = '❌ Terjadi kesalahan yang tidak diketahui: ' + error.message;
+            break;
+    }
+    
+    showError(message);
+    
+    // Tambahkan tombol coba lagi dan fallback
+    const errorDiv = document.createElement('div');
+    errorDiv.style.marginTop = '15px';
+    errorDiv.style.display = 'flex';
+    errorDiv.style.gap = '10px';
+    errorDiv.style.justifyContent = 'center';
+    errorDiv.style.flexWrap = 'wrap';
+    
+    const retryButton = document.createElement('button');
+    retryButton.textContent = '🔄 Coba Lagi';
+    retryButton.className = 'btn-primary';
+    retryButton.onclick = getUserLocation;
+    
+    const fallbackButton = document.createElement('button');
+    fallbackButton.textContent = '🌐 Gunakan Lokasi IP (Tidak Akurat)';
+    fallbackButton.className = 'btn-primary';
+    fallbackButton.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
+    fallbackButton.style.fontSize = '0.9em';
+    fallbackButton.onclick = getLocationByIP;
+    
+    errorDiv.appendChild(retryButton);
+    errorDiv.appendChild(fallbackButton);
+    
+    if (!errorMessage.querySelector('button')) {
+        errorMessage.appendChild(errorDiv);
+    }
+}
+
+// Fungsi untuk mendapatkan lokasi berdasarkan IP (fallback)
+async function getLocationByIP() {
+    hideError();
+    showLoading();
+    
+    try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        
+        if (data.latitude && data.longitude) {
+            hideLoading();
+            const lat = data.latitude;
+            const lng = data.longitude;
+            
+            // Tampilkan informasi dengan catatan bahwa ini dari IP
+            document.getElementById('latitude').textContent = lat.toFixed(6);
+            document.getElementById('longitude').textContent = lng.toFixed(6);
+            document.getElementById('accuracy').textContent = '±1000-5000 meter (IP-based)';
+            document.getElementById('address').textContent = `${data.city}, ${data.region}, ${data.country_name}`;
+            
+            // Tampilkan peta
+            displayMap(lat, lng, 5000); // Default 5km untuk IP
+            
+            // Tampilkan rekomendasi
+            displayRecommendations(lat, lng);
+            
+            showLocationInfo();
+            
+            // Tampilkan peringatan
+            const warning = document.createElement('div');
+            warning.style.background = '#fee';
+            warning.style.border = '2px solid #fcc';
+            warning.style.color = '#c33';
+            warning.style.padding = '20px';
+            warning.style.borderRadius = '10px';
+            warning.style.marginBottom = '20px';
+            warning.innerHTML = `
+                <strong>⚠️ PERHATIAN - Lokasi Tidak Akurat!</strong><br><br>
+                Lokasi ini berdasarkan <strong>alamat IP Anda</strong> yang menunjukkan lokasi <strong>server ISP/Provider Internet</strong> Anda, 
+                bukan lokasi fisik Anda yang sebenarnya.<br><br>
+                📍 <strong>Lokasi asli Anda:</strong> ${data.city}, ${data.region}<br>
+                🏢 <strong>ISP Anda:</strong> ${data.org}<br><br>
+                <strong>Untuk lokasi yang akurat (±10-100 meter), gunakan tombol "Dapatkan Lokasi GPS" dan izinkan akses lokasi.</strong>
+            `;
+            
+            locationInfo.insertBefore(warning, locationInfo.firstChild);
+        } else {
+            throw new Error('Data lokasi tidak tersedia');
+        }
+    } catch (error) {
+        hideLoading();
+        showError('❌ Gagal mendapatkan lokasi dari IP. Silakan coba lagi atau aktifkan GPS.');
+        console.error('IP geolocation error:', error);
+    }
+}
+
+// Fungsi untuk menampilkan informasi lokasi
+function displayLocationInfo(lat, lng, accuracy) {
+    document.getElementById('latitude').textContent = lat.toFixed(6);
+    document.getElementById('longitude').textContent = lng.toFixed(6);
+    document.getElementById('accuracy').textContent = `±${Math.round(accuracy)} meter`;
+}
+
+// Fungsi untuk mendapatkan alamat dari koordinat (Reverse Geocoding)
+async function getAddressFromCoordinates(lat, lng) {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+        );
+        const data = await response.json();
+        
+        if (data.display_name) {
+            document.getElementById('address').textContent = data.display_name;
+        } else {
+            document.getElementById('address').textContent = 'Alamat tidak ditemukan';
+        }
+    } catch (error) {
+        document.getElementById('address').textContent = 'Gagal mendapatkan alamat';
+        console.error('Error getting address:', error);
+    }
+}
+
+// Fungsi untuk menampilkan peta
+function displayMap(lat, lng, accuracyValue) {
+    console.log('🗺️ Menampilkan peta - Lat:', lat, 'Lng:', lng, 'Accuracy:', accuracyValue);
+    
+    // Hapus peta lama jika ada
+    if (map) {
+        map.remove();
+    }
+
+    // Buat peta baru
+    map = L.map('map').setView([lat, lng], 15);
+
+    // Tambahkan tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Tambahkan marker
+    marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup('<b>Lokasi Anda</b><br>Lat: ' + lat.toFixed(6) + '<br>Lng: ' + lng.toFixed(6))
+        .openPopup();
+
+    // Tambahkan circle untuk menunjukkan akurasi
+    // Pastikan accuracyValue adalah angka yang valid
+    if (accuracyValue && !isNaN(accuracyValue) && accuracyValue > 0) {
+        L.circle([lat, lng], {
+            color: '#667eea',
+            fillColor: '#667eea',
+            fillOpacity: 0.2,
+            radius: accuracyValue
+        }).addTo(map);
+        console.log('✅ Circle ditambahkan dengan radius:', accuracyValue);
+    } else {
+        console.warn('⚠️ Accuracy tidak valid, skip circle');
+    }
+}
+
+// Fungsi untuk menampilkan rekomendasi berdasarkan lokasi
+function displayRecommendations(lat, lng) {
+    const recommendationsList = document.getElementById('recommendationsList');
+    
+    // Contoh rekomendasi berdasarkan lokasi
+    // Dalam aplikasi nyata, ini bisa dari API backend
+    const recommendations = [
+        {
+            title: 'Konten Lokal',
+            description: 'Menampilkan berita dan informasi relevan untuk wilayah Anda'
+        },
+        {
+            title: 'Cuaca Lokal',
+            description: 'Prakiraan cuaca untuk lokasi Anda saat ini'
+        },
+        {
+            title: 'Rekomendasi Tempat',
+            description: 'Restoran, toko, dan tempat menarik di sekitar Anda'
+        },
+        {
+            title: 'Bahasa & Mata Uang',
+            description: 'Konten ditampilkan dalam bahasa dan mata uang lokal Anda'
+        },
+        {
+            title: 'Penawaran Khusus',
+            description: 'Promo dan diskon dari merchant terdekat dengan lokasi Anda'
+        }
+    ];
+
+    recommendationsList.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+            <strong>${rec.title}</strong>
+            <span>${rec.description}</span>
+        </div>
+    `).join('');
+}
+
+// Fungsi helper untuk menampilkan/menyembunyikan elemen
+function showLoading() {
+    console.log('⏳ Menampilkan loading...');
+    loadingIndicator.classList.remove('hidden');
+}
+
+function hideLoading() {
+    console.log('✅ Menyembunyikan loading...');
+    loadingIndicator.classList.add('hidden');
+}
+
+function showError(message) {
+    console.error('❌ Error:', message);
+    errorMessage.innerHTML = message; // Ubah ke innerHTML untuk support HTML
+    errorMessage.classList.remove('hidden');
+}
+
+function hideError() {
+    errorMessage.classList.add('hidden');
+    errorMessage.innerHTML = ''; // Bersihkan konten
+}
+
+function showLocationInfo() {
+    console.log('📍 Menampilkan informasi lokasi...');
+    locationInfo.classList.remove('hidden');
+}
+
+function hideLocationInfo() {
+    locationInfo.classList.add('hidden');
+}

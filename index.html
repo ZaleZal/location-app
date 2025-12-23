@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Lokasi User</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📍 Aplikasi Lokasi User</h1>
+            <p>Dapatkan informasi lokasi Anda untuk pengalaman yang lebih baik</p>
+        </header>
+
+        <main>
+            <!-- Tips Section -->
+            <div class="tips-section">
+                <h3>💡 Perbedaan Metode Lokasi:</h3>
+                <ul>
+                    <li><strong>📍 Lokasi GPS</strong> - Akurat ±10-100 meter (REKOMENDASI!)</li>
+                    <li><strong>🌐 Lokasi IP</strong> - Hanya perkiraan kota/region (bisa berbeda 1-50 km)</li>
+                    <li>⚠️ <strong>PENTING:</strong> Lokasi IP menunjukkan server ISP, BUKAN lokasi Anda yang sebenarnya</li>
+                    <li>✅ Gunakan GPS untuk hasil terbaik</li>
+                </ul>
+            </div>
+
+            <div class="action-section">
+                <button id="getLocationBtn" class="btn-primary">
+                    <span class="btn-icon">📍</span>
+                    Dapatkan Lokasi GPS (Akurat)
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Mendapatkan lokasi Anda...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+
+            <div id="locationInfo" class="location-info hidden">
+                <h2>Informasi Lokasi Anda</h2>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-label">Latitude</div>
+                        <div class="info-value" id="latitude">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Longitude</div>
+                        <div class="info-value" id="longitude">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Akurasi</div>
+                        <div class="info-value" id="accuracy">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Alamat</div>
+                        <div class="info-value" id="address">Memuat...</div>
+                    </div>
+                </div>
+
+                <!-- Peta -->
+                <div class="map-container">
+                    <h3>Lokasi Anda di Peta</h3>
+                    <div id="map"></div>
+                </div>
+
+                <!-- Rekomendasi berdasarkan lokasi -->
+                <div class="recommendations">
+                    <h3>🎯 Rekomendasi Berdasarkan Lokasi</h3>
+                    <div id="recommendationsList">
+                        <!-- Akan diisi oleh JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>💡 Aplikasi ini menggunakan HTML5 Geolocation API untuk mendapatkan lokasi Anda</p>
+            <p>Data lokasi Anda tidak disimpan dan hanya digunakan untuk meningkatkan pengalaman Anda</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
