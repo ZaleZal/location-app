@@ -42,14 +42,14 @@ function getUserLocation() {
 
     console.log('⏳ Menunggu izin lokasi dari user...');
 
-    // Dapatkan lokasi dengan opsi yang lebih toleran
+    // Dapatkan lokasi dengan opsi untuk mobile
     navigator.geolocation.getCurrentPosition(
         handleSuccess,
         handleError,
         {
-            enableHighAccuracy: false, // Ubah ke false untuk lebih cepat
-            timeout: 30000, // Perpanjang timeout jadi 30 detik
-            maximumAge: 60000 // Izinkan cache lokasi hingga 1 menit
+            enableHighAccuracy: true, // Gunakan GPS untuk akurasi tinggi (penting untuk mobile!)
+            timeout: 60000, // 60 detik - mobile butuh waktu lebih lama
+            maximumAge: 0 // Selalu minta lokasi baru, jangan pakai cache
         }
     );
 }
@@ -110,7 +110,7 @@ function handleError(error) {
             message = '❌ Informasi lokasi tidak tersedia. Pastikan GPS/WiFi Anda aktif.';
             break;
         case error.TIMEOUT:
-            message = '❌ Waktu permintaan lokasi habis. Silakan coba lagi atau aktifkan GPS/WiFi Anda.';
+            message = '❌ Waktu permintaan lokasi habis. GPS membutuhkan waktu lebih lama di HP.\n\n📱 Tips untuk HP:\n1. Pastikan GPS aktif di pengaturan\n2. Tunggu 10-30 detik\n3. Jika masih gagal, coba kembali atau gunakan WiFi\n4. Atau gunakan tombol "Lokasi IP" di bawah (kurang akurat)';
             break;
         default:
             message = '❌ Terjadi kesalahan yang tidak diketahui: ' + error.message;
