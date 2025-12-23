@@ -10,14 +10,27 @@ Aplikasi web sederhana untuk mendapatkan informasi lokasi user menggunakan HTML5
 - 📍 Reverse geocoding untuk mendapatkan alamat lengkap
 - 🎁 Rekomendasi personalisasi berdasarkan lokasi
 - 📱 Responsive design untuk mobile dan desktop
-- 🔒 Privacy-first: data lokasi tidak disimpan
+- � **Menyimpan data lokasi ke PostgreSQL (Supabase)**
+- 📊 **Dashboard untuk melihat dan export data lokasi**
+- 🔄 **Akses data lokasi via variable global dan localStorage**
 
 ## 🚀 Cara Menggunakan
 
+### Setup Database (Opsional - untuk menyimpan data)
+1. Ikuti panduan di [SETUP-SUPABASE.md](SETUP-SUPABASE.md) untuk setup PostgreSQL gratis
+2. Masukkan kredensial Supabase di `supabase-config.js`
+3. Data lokasi akan otomatis tersimpan saat user klik tombol "Kirim ke Server"
+
+### Menjalankan Aplikasi
 1. Buka file `index.html` di browser modern (Chrome, Firefox, Edge, Safari)
-2. Klik tombol "Dapatkan Lokasi Saya"
+2. Klik tombol "Dapatkan Lokasi GPS"
 3. Izinkan akses lokasi ketika browser meminta izin
 4. Lihat informasi lokasi Anda beserta peta dan rekomendasi
+5. Klik "🚀 Kirim ke Server" untuk menyimpan data (jika sudah setup database)
+
+### Melihat Data yang Tersimpan
+- Buka `view-data.html` untuk melihat dashboard data lokasi
+- Atau buka Supabase Dashboard > Table Editor
 
 ## 🛠️ Teknologi yang Digunakan
 
@@ -27,6 +40,7 @@ Aplikasi web sederhana untuk mendapatkan informasi lokasi user menggunakan HTML5
 - **Leaflet.js**: Library peta interaktif
 - **OpenStreetMap**: Tile provider untuk peta
 - **Nominatim API**: Reverse geocoding untuk mendapatkan alamat
+- **Supabase**: PostgreSQL database gratis untuk menyimpan data lokasi
 
 ## 📋 Persyaratan
 

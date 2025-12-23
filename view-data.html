@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lihat Data Lokasi - Supabase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .method-gps {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .method-ip {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .map-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Data Lokasi User - Supabase PostgreSQL</h1>
+        <p style="color: #666; margin-bottom: 30px;">Realtime data dari database PostgreSQL Anda</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalLocations">-</div>
+                <div class="stat-label">Total Lokasi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="gpsCount">-</div>
+                <div class="stat-label">Lokasi GPS</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="ipCount">-</div>
+                <div class="stat-label">Lokasi IP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayCount">-</div>
+                <div class="stat-label">Hari Ini</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="loadData()">🔄 Refresh Data</button>
+            <button onclick="exportToJSON()">📥 Export JSON</button>
+            <button onclick="clearOldData()">🗑️ Hapus Data Lama (>30 hari)</button>
+        </div>
+
+        <div id="loading" class="loading">
+            <h3>⏳ Memuat data...</h3>
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="dataContainer" style="display: none;">
+            <h2>📍 Daftar Lokasi</h2>
+            <div style="overflow-x: auto;">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Waktu</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Akurasi</th>
+                            <th>Metode</th>
+                            <th>Lokasi</th>
+                            <th>Map</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="supabase-config.js"></script>
+    <script>
+        // Load data saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', loadData);
+
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const dataContainer = document.getElementById('dataContainer');
+
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            dataContainer.style.display = 'none';
+
+            try {
+                // Validasi konfigurasi
+                if (!validateSupabaseConfig()) {
+                    throw new Error('Supabase belum dikonfigurasi! Buka supabase-config.js dan masukkan kredensial Anda.');
+                }
+
+                // Fetch data dari Supabase
+                const data = await supabaseFetch('/user_locations?order=timestamp.desc&limit=100');
+
+                console.log('✅ Data loaded:', data);
+
+                // Update statistik
+                updateStats(data);
+
+                // Tampilkan data di tabel
+                displayData(data);
+
+                loading.style.display = 'none';
+                dataContainer.style.display = 'block';
+
+            } catch (err) {
+                console.error('❌ Error loading data:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.innerHTML = `<strong>❌ Gagal memuat data!</strong><br><br>${err.message}<br><br>Pastikan:<br>1. Supabase sudah dikonfigurasi di supabase-config.js<br>2. Tabel user_locations sudah dibuat<br>3. Row Level Security policy sudah diset`;
+            }
+        }
+
+        function updateStats(data) {
+            const total = data.length;
+            const gpsCount = data.filter(d => d.method === 'GPS').length;
+            const ipCount = data.filter(d => d.method === 'IP').length;
+            
+            const today = new Date().toDateString();
+            const todayCount = data.filter(d => {
+                return new Date(d.timestamp).toDateString() === today;
+            }).length;
+
+            document.getElementById('totalLocations').textContent = total;
+            document.getElementById('gpsCount').textContent = gpsCount;
+            document.getElementById('ipCount').textContent = ipCount;
+            document.getElementById('todayCount').textContent = todayCount;
+        }
+
+        function displayData(data) {
+            const tbody = document.getElementById('dataBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleString('id-ID');
+                
+                const location = [item.city, item.region, item.country]
+                    .filter(Boolean)
+                    .join(', ') || item.address || '-';
+
+                const methodClass = item.method === 'GPS' ? 'method-gps' : 'method-ip';
+
+                row.innerHTML = `
+                    <td>#${item.id}</td>
+                    <td>${formattedDate}</td>
+                    <td>${parseFloat(item.latitude).toFixed(6)}</td>
+                    <td>${parseFloat(item.longitude).toFixed(6)}</td>
+                    <td>±${item.accuracy}m</td>
+                    <td><span class="method-badge ${methodClass}">${item.method}</span></td>
+                    <td>${location}</td>
+                    <td>
+                        <a href="https://www.openstreetmap.org/?mlat=${item.latitude}&mlon=${item.longitude}&zoom=15" target="_blank">
+                            <img class="map-preview" 
+                                 src="https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-s+667eea(${item.longitude},${item.latitude})/${item.longitude},${item.latitude},13,0/120x120@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw"
+                                 alt="Map"
+                                 onerror="this.src='https://via.placeholder.com/60x60?text=Map'">
+                        </a>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        async function exportToJSON() {
+            try {
+                const data = await supabaseFetch('/user_locations?order=timestamp.desc');
+                const json = JSON.stringify(data, null, 2);
+                
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `location-data-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                
+                alert('✅ Data berhasil di-export!');
+            } catch (err) {
+                alert('❌ Gagal export data: ' + err.message);
+            }
+        }
+
+        async function clearOldData() {
+            if (!confirm('⚠️ Hapus semua data lokasi yang lebih dari 30 hari?\n\nTindakan ini tidak bisa dibatalkan!')) {
+                return;
+            }
+
+            try {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                const result = await supabaseFetch(`/user_locations?timestamp=lt.${thirtyDaysAgo.toISOString()}`, {
+                    method: 'DELETE'
+                });
+
+                alert('✅ Data lama berhasil dihapus!');
+                loadData();
+            } catch (err) {
+                alert('❌ Gagal hapus data: ' + err.message);
+            }
+        }
+    </script>
+</body>
+</html>

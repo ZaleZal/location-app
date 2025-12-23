@@ -430,29 +430,103 @@ function showLocationJSON() {
 
 // Fungsi simulasi kirim ke server
 async function sendLocationToServer() {
-    // Simulasi kirim ke server (ganti URL dengan backend Anda)
-    console.log('🚀 Mengirim data ke server...');
-    console.log('Data yang dikirim:', currentUserLocation);
-    
-    // Contoh dengan fetch (uncomment jika punya backend)
-    /*
-    try {
-        const response = await fetch('https://your-api.com/save-location', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(currentUserLocation)
-        });
-        const result = await response.json();
-        console.log('✅ Response dari server:', result);
-        alert('✅ Data berhasil dikirim ke server!');
-    } catch (error) {
-        console.error('❌ Error:', error);
-        alert('❌ Gagal kirim ke server: ' + error.message);
+    // Validasi konfigurasi Supabase
+    if (!validateSupabaseConfig()) {
+        alert('❌ Supabase belum dikonfigurasi!\n\nSilakan buka file supabase-config.js dan masukkan kredensial Supabase Anda.\n\nLihat SETUP-SUPABASE.md untuk panduan lengkap.');
+        return;
     }
-    */
-    
-    // Simulasi saja
-    alert('✅ Simulasi berhasil!\n\nData lokasi siap dikirim ke server.\nCek console untuk melihat data yang akan dikirim.\n\nUntuk kirim ke server sungguhan, uncomment kode di fungsi sendLocationToServer()');
+
+    if (!currentUserLocation) {
+        alert('❌ Tidak ada data lokasi untuk dikirim!');
+        return;
+    }
+
+    console.log('🚀 Mengirim data ke Supabase PostgreSQL...');
+    console.log('📦 Data yang dikirim:', currentUserLocation);
+
+    try {
+        // Tampilkan loading
+        const originalText = event.target.textContent;
+        event.target.textContent = '⏳ Mengirim...';
+        event.target.disabled = true;
+
+        // Siapkan data untuk dikirim
+        const dataToSend = {
+            latitude: currentUserLocation.latitude,
+            longitude: currentUserLocation.longitude,
+            accuracy: currentUserLocation.accuracy,
+            method: currentUserLocation.method || 'GPS',
+            city: currentUserLocation.city || null,
+            region: currentUserLocation.region || null,
+            country: currentUserLocation.country || null,
+            isp: currentUserLocation.isp || null,
+            address: document.getElementById('address').textContent || null,
+            user_agent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('📤 Mengirim ke Supabase:', dataToSend);
+
+        // Kirim ke Supabase
+        const result = await supabaseFetch('/user_locations', {
+            method: 'POST',
+            body: JSON.stringify(dataToSend)
+        });
+
+        console.log('✅ Response dari Supabase:', result);
+
+        // Kembalikan tombol
+        event.target.textContent = originalText;
+        event.target.disabled = false;
+
+        // Tampilkan success message
+        alert(`✅ Data lokasi berhasil disimpan ke PostgreSQL!\n\nID: ${result[0].id}\nLatitude: ${result[0].latitude}\nLongitude: ${result[0].longitude}\n\nCek di Supabase Dashboard > Table Editor > user_locations`);
+
+        // Tampilkan konfirmasi di halaman
+        const successDiv = document.createElement('div');
+        successDiv.style.background = '#d4edda';
+        successDiv.style.border = '2px solid #c3e6cb';
+        successDiv.style.color = '#155724';
+        successDiv.style.padding = '15px';
+        successDiv.style.borderRadius = '10px';
+        successDiv.style.marginTop = '15px';
+        successDiv.innerHTML = `
+            <strong>✅ Data Berhasil Disimpan!</strong><br>
+            <small>Database ID: ${result[0].id} | ${new Date(result[0].timestamp).toLocaleString('id-ID')}</small>
+        `;
+
+        const viewer = document.getElementById('locationDataViewer');
+        if (viewer && !viewer.querySelector('.success-message')) {
+            successDiv.className = 'success-message';
+            viewer.appendChild(successDiv);
+            
+            // Hapus setelah 5 detik
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+    } catch (error) {
+        console.error('❌ Error saat kirim ke server:', error);
+        
+        // Kembalikan tombol jika error
+        if (event.target) {
+            event.target.textContent = '🚀 Simulasi Kirim ke Server';
+            event.target.disabled = false;
+        }
+
+        // Tampilkan error yang lebih informatif
+        let errorMessage = '❌ Gagal mengirim data ke server!\n\n';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage += 'Kemungkinan masalah:\n' +
+                          '1. Supabase URL atau API Key salah\n' +
+                          '2. Tidak ada koneksi internet\n' +
+                          '3. CORS policy (cek console untuk detail)\n\n' +
+                          'Cek file supabase-config.js dan pastikan kredensial sudah benar.';
+        } else {
+            errorMessage += 'Error: ' + error.message + '\n\n' +
+                          'Cek console (F12) untuk detail lengkap.';
+        }
+        
+        alert(errorMessage);
+    }
 }
