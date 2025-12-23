@@ -3,3 +3,6 @@
 Thumbs.db
 *.log
 node_modules/
+
+# Supabase config dengan API keys (JANGAN DI-PUSH!)
+supabase-config.js

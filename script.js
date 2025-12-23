@@ -429,7 +429,7 @@ function showLocationJSON() {
 }
 
 // Fungsi simulasi kirim ke server
-async function sendLocationToServer() {
+async function sendLocationToServer(event) {
     // Validasi konfigurasi Supabase
     if (!validateSupabaseConfig()) {
         alert('❌ Supabase belum dikonfigurasi!\n\nSilakan buka file supabase-config.js dan masukkan kredensial Supabase Anda.\n\nLihat SETUP-SUPABASE.md untuk panduan lengkap.');
@@ -446,9 +446,15 @@ async function sendLocationToServer() {
 
     try {
         // Tampilkan loading
-        const originalText = event.target.textContent;
-        event.target.textContent = '⏳ Mengirim...';
-        event.target.disabled = true;
+        let originalText = '🚀 Simulasi Kirim ke Server';
+        let buttonElement = null;
+        
+        if (event && event.target) {
+            buttonElement = event.target;
+            originalText = buttonElement.textContent;
+            buttonElement.textContent = '⏳ Mengirim...';
+            buttonElement.disabled = true;
+        }
 
         // Siapkan data untuk dikirim
         const dataToSend = {
@@ -476,8 +482,10 @@ async function sendLocationToServer() {
         console.log('✅ Response dari Supabase:', result);
 
         // Kembalikan tombol
-        event.target.textContent = originalText;
-        event.target.disabled = false;
+        if (buttonElement) {
+            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
+        }
 
         // Tampilkan success message
         alert(`✅ Data lokasi berhasil disimpan ke PostgreSQL!\n\nID: ${result[0].id}\nLatitude: ${result[0].latitude}\nLongitude: ${result[0].longitude}\n\nCek di Supabase Dashboard > Table Editor > user_locations`);
@@ -508,9 +516,9 @@ async function sendLocationToServer() {
         console.error('❌ Error saat kirim ke server:', error);
         
         // Kembalikan tombol jika error
-        if (event.target) {
-            event.target.textContent = '🚀 Simulasi Kirim ke Server';
-            event.target.disabled = false;
+        if (buttonElement) {
+            buttonElement.textContent = originalText;
+            buttonElement.disabled = false;
         }
 
         // Tampilkan error yang lebih informatif

@@ -1,16 +1,13 @@
 // ============================================
-// KONFIGURASI SUPABASE
+// KONFIGURASI SUPABASE - EXAMPLE FILE
 // ============================================
-// PENTING: Ganti dengan kredensial Supabase Anda!
-// Cara mendapatkan:
-// 1. Buka https://supabase.com
-// 2. Login dan buka project Anda
-// 3. Settings > API
-// 4. Copy Project URL dan anon public key
+// CARA SETUP:
+// 1. Rename file ini jadi: supabase-config.js
+// 2. Ganti nilai di bawah dengan kredensial Supabase Anda
+// 3. JANGAN commit file supabase-config.js ke Git!
 
-// Untuk local development
-const SUPABASE_URL = 'https://txhetapttfseiynbrgma.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_CaU019kibWMtOwhSao2K7A_PFt0fgjP';
+const SUPABASE_URL = 'https://txhetapttfseiybnorgma.supabase.co'; // Ganti dengan Project URL Anda
+const SUPABASE_KEY = 'sb_publishable_CaU019kibWMtOwhSao2K7A_PFt0fgjPYOUR-PUBLISHABLE-KEY-HERE'; // Ganti dengan Publishable Key Anda
 
 // ============================================
 // JANGAN EDIT DI BAWAH INI
@@ -44,7 +41,7 @@ async function supabaseFetch(endpoint, options = {}) {
 // Validasi konfigurasi
 function validateSupabaseConfig() {
     if (SUPABASE_URL === 'https://YOUR-PROJECT.supabase.co' || 
-        SUPABASE_KEY === 'YOUR-ANON-PUBLIC-KEY') {
+        SUPABASE_KEY === 'YOUR-PUBLISHABLE-KEY-HERE') {
         console.error('❌ SUPABASE BELUM DIKONFIGURASI!');
         console.error('📝 Buka file supabase-config.js dan masukkan kredensial Supabase Anda');
         console.error('📖 Lihat SETUP-SUPABASE.md untuk panduan lengkap');
