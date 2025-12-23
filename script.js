@@ -88,13 +88,7 @@ function handleSuccess(position) {
     // Tampilkan peta dengan akurasi
     displayMap(latitude, longitude, accuracy);
     
-    // Tampilkan rekomendasi berdasarkan lokasi
-    displayRecommendations(latitude, longitude);
-    
     showLocationInfo();
-
-    // Tambahkan tombol untuk melihat data lokasi
-    addLocationDataViewer();
 }
 
 // Fungsi ketika gagal mendapatkan lokasi
@@ -284,43 +278,6 @@ function displayMap(lat, lng, accuracyValue) {
     }
 }
 
-// Fungsi untuk menampilkan rekomendasi berdasarkan lokasi
-function displayRecommendations(lat, lng) {
-    const recommendationsList = document.getElementById('recommendationsList');
-    
-    // Contoh rekomendasi berdasarkan lokasi
-    // Dalam aplikasi nyata, ini bisa dari API backend
-    const recommendations = [
-        {
-            title: 'Konten Lokal',
-            description: 'Menampilkan berita dan informasi relevan untuk wilayah Anda'
-        },
-        {
-            title: 'Cuaca Lokal',
-            description: 'Prakiraan cuaca untuk lokasi Anda saat ini'
-        },
-        {
-            title: 'Rekomendasi Tempat',
-            description: 'Restoran, toko, dan tempat menarik di sekitar Anda'
-        },
-        {
-            title: 'Bahasa & Mata Uang',
-            description: 'Konten ditampilkan dalam bahasa dan mata uang lokal Anda'
-        },
-        {
-            title: 'Penawaran Khusus',
-            description: 'Promo dan diskon dari merchant terdekat dengan lokasi Anda'
-        }
-    ];
-
-    recommendationsList.innerHTML = recommendations.map(rec => `
-        <div class="recommendation-item">
-            <strong>${rec.title}</strong>
-            <span>${rec.description}</span>
-        </div>
-    `).join('');
-}
-
 // Fungsi helper untuk menampilkan/menyembunyikan elemen
 function showLoading() {
     console.log('⏳ Menampilkan loading...');
@@ -352,83 +309,7 @@ function hideLocationInfo() {
     locationInfo.classList.add('hidden');
 }
 
-// Fungsi untuk menambahkan tombol viewer data lokasi
-function addLocationDataViewer() {
-    // Cek apakah sudah ada
-    if (document.getElementById('locationDataViewer')) {
-        return;
-    }
-
-    const viewerSection = document.createElement('div');
-    viewerSection.id = 'locationDataViewer';
-    viewerSection.style.marginTop = '20px';
-    viewerSection.style.padding = '20px';
-    viewerSection.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    viewerSection.style.borderRadius = '15px';
-    viewerSection.style.color = 'white';
-    
-    viewerSection.innerHTML = `
-        <h3 style="margin-top: 0;">🔍 Akses Data Lokasi</h3>
-        <p style="margin-bottom: 15px;">Data lokasi tersedia di berbagai tempat:</p>
-        
-        <div style="display: grid; gap: 10px;">
-            <button onclick="showLocationInConsole()" class="data-btn">
-                📋 Tampilkan di Console
-            </button>
-            <button onclick="copyLocationToClipboard()" class="data-btn">
-                📋 Copy Data ke Clipboard
-            </button>
-            <button onclick="showLocationJSON()" class="data-btn">
-                📄 Lihat JSON Format
-            </button>
-            <button onclick="sendLocationToServer()" class="data-btn">
-                🚀 Simulasi Kirim ke Server
-            </button>
-        </div>
-        
-        <div id="jsonDisplay" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: monospace; font-size: 12px; overflow-x: auto;"></div>
-    `;
-    
-    locationInfo.appendChild(viewerSection);
-}
-
-// Fungsi untuk menampilkan lokasi di console
-function showLocationInConsole() {
-    console.clear();
-    console.log('🌍 ==================== DATA LOKASI USER ====================');
-    console.log('📍 Variable Global (currentUserLocation):');
-    console.log(currentUserLocation);
-    console.log('\n💾 Data dari localStorage:');
-    console.log(JSON.parse(localStorage.getItem('userLocation')));
-    console.log('\n📊 Cara mengakses data:');
-    console.log('- JavaScript: currentUserLocation.latitude');
-    console.log('- LocalStorage: JSON.parse(localStorage.getItem("userLocation"))');
-    console.log('===========================================================');
-    alert('✅ Data lokasi ditampilkan di Console! Tekan F12 untuk melihat.');
-}
-
-// Fungsi untuk copy data ke clipboard
-function copyLocationToClipboard() {
-    const data = JSON.stringify(currentUserLocation, null, 2);
-    navigator.clipboard.writeText(data).then(() => {
-        alert('✅ Data lokasi berhasil di-copy ke clipboard!\n\nAnda bisa paste di text editor.');
-    }).catch(err => {
-        alert('❌ Gagal copy: ' + err);
-    });
-}
-
-// Fungsi untuk menampilkan JSON
-function showLocationJSON() {
-    const jsonDisplay = document.getElementById('jsonDisplay');
-    if (jsonDisplay.style.display === 'none') {
-        jsonDisplay.style.display = 'block';
-        jsonDisplay.innerHTML = '<pre>' + JSON.stringify(currentUserLocation, null, 2) + '</pre>';
-    } else {
-        jsonDisplay.style.display = 'none';
-    }
-}
-
-// Fungsi simulasi kirim ke server
+// Fungsi kirim ke server
 async function sendLocationToServer(event) {
     // Validasi konfigurasi Supabase
     if (!validateSupabaseConfig()) {
@@ -488,7 +369,7 @@ async function sendLocationToServer(event) {
         }
 
         // Tampilkan success message
-        alert(`✅ Data lokasi berhasil disimpan ke PostgreSQL!\n\nID: ${result[0].id}\nLatitude: ${result[0].latitude}\nLongitude: ${result[0].longitude}\n\nCek di Supabase Dashboard > Table Editor > user_locations`);
+        alert(`oke nanti kita ketemu di Taman Maluku`);
 
         // Tampilkan konfirmasi di halaman
         const successDiv = document.createElement('div');
@@ -522,14 +403,13 @@ async function sendLocationToServer(event) {
         }
 
         // Tampilkan error yang lebih informatif
-        let errorMessage = '❌ Gagal mengirim data ke server!\n\n';
+        let errorMessage = 'Lokasinya aktifin dulu oss, biar bisa ketemu nanti.\n\n';
         
         if (error.message.includes('Failed to fetch')) {
             errorMessage += 'Kemungkinan masalah:\n' +
-                          '1. Supabase URL atau API Key salah\n' +
-                          '2. Tidak ada koneksi internet\n' +
-                          '3. CORS policy (cek console untuk detail)\n\n' +
-                          'Cek file supabase-config.js dan pastikan kredensial sudah benar.';
+                            '\n' +
+                            'Masalah jaringan\n\n' +
+                            '';
         } else {
             errorMessage += 'Error: ' + error.message + '\n\n' +
                           'Cek console (F12) untuk detail lengkap.';

